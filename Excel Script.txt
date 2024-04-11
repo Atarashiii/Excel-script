@@ -1,0 +1,40 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim changedRows As Range
+    Dim cell As Range
+    Dim currentRow As Long
+    Dim colNum As Long
+    Dim lastCol As Long
+    Dim sourceCell As Range
+    
+    ' Déterminer la plage des lignes modifiées
+    Set changedRows = Intersect(Target.EntireRow, Me.UsedRange)
+    
+    ' Vérifier s'il y a des lignes modifiées
+    If Not changedRows Is Nothing Then
+        ' Parcourir chaque ligne modifiée
+        For Each cell In changedRows.Cells
+            currentRow = cell.Row
+            
+            ' Déterminer la dernière colonne utilisée dans la ligne modifiée
+            lastCol = Cells(currentRow, Columns.Count).End(xlToLeft).Column
+            
+            ' Vérifier si la ligne contient des données
+            If lastCol > 0 Then
+                ' Parcourir chaque colonne dans la ligne modifiée à partir de la gauche
+                For colNum = 1 To lastCol
+                    If Cells(currentRow, colNum) = "" Then
+                        ' Recherchez la valeur non vide dans la même colonne de la ligne au-dessus
+                        Set sourceCell = Cells(currentRow - 1, colNum)
+                        If Not IsEmpty(sourceCell) Then
+                            ' Copier la valeur depuis la ligne au-dessus si elle n'est pas vide
+                            Cells(currentRow, colNum) = sourceCell.Value
+                        End If
+                    Else
+                        ' Arrêter le remplissage dès qu'une cellule non vide est rencontrée à droite de la cellule modifiée
+                        Exit For
+                    End If
+                Next colNum
+            End If
+        Next cell
+    End If
+End Sub
